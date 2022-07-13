@@ -11,6 +11,17 @@ from: https://www.fantasypros.com/nfl/adp/ppr-overall.php
 goal of code is to somewhat reproduce beersheets with ranking differences
 between ESPN and ECR from fantasypros, etc.
 
+issue: somehow mahomes is missing
+>> was missing bc name mismatch fpros has him as Mahomes II, changed the name in ESPN file
+
+>> changed limit in gettingESPN to pull data for 200 players instead of 150
+merger results in 167 players out of 200
+reducing fantpros back to 150 returned 143 players, so only loss of 7
+either mismatch or not available in data
+
+to do:
+    clean code
+    make sure mahomes is changed to mahomes II in ESPN set
 """
 import pandas as pd
 import numpy as np
@@ -28,13 +39,20 @@ fantasypros.FPros = fantasypros.FPros.astype(float)
 
 #importing ESPN ADP from API, see "getting ESPNadp.py"
 
-ESPN = pd.read_csv('E:\Fantasy\ADPs\ESPNADP.csv', index_col = 0)
+ESPN = pd.read_csv('E:\Fantasy\ADPs\ESPNADP1.csv', index_col = 0)
 
 ##merge ffpros data with espn file from API
 ##renaming avgADP from ESPN file to ESPN
 test = fantasypros.merge(ESPN, on = 'Player Name')
 test = test[['Player Name', 'Position', 'AvgADP', 'FPros',  'RTSports', 'Fantrax',
        'FFC', 'Sleeper', 'AVG']].rename(columns = {'AvgADP' : 'ESPN'})
+
+####
+#testing which players didnt get merged, likely bc of naming problems/not in the respective top 150
+#could alleviate by increasing to 250 players, will have
+
+#len(ESPN[~ESPN.isin(test)].dropna())
+#len(fantasypros[~fantasypros.isin(test)].dropna())
 
 
 ## recalculate avg adp/ECR ADP by excluding already included ESPN data
@@ -49,7 +67,7 @@ test['Value'] = test['ECR'] - test['ESPN']
 test = test[['Player Name', 'Position','FPros', 'ESPN', 'RTSports', 'Fantrax', 'FFC', 'Sleeper',
         'ECR', 'Value']]
 
-# for visibility small df with name, pos, espn rankings, ECR and value in comparison to espn
+# for visibility small df 
 # sort by ECR
 
 value = test[['Player Name', 'Position', 'ESPN', 'ECR', 'Value']].sort_values(by = ['ECR'])
@@ -59,7 +77,7 @@ value = test[['Player Name', 'Position', 'ESPN', 'ECR', 'Value']].sort_values(by
 # same thing as ECR just, but is visually quicker to pick up on
 
 
-value['index'] = list(range( 0, 129))
+value['index'] = list(range( 0, 144))
 rank = ((value['index'] + 12) / 12)
 value['round'] = rank.apply(np.floor).astype(int)
 value['pick'] = ((rank - value['round'] + 0.084) * 12 ).apply(np.floor).astype(int)
@@ -80,6 +98,4 @@ wr_only = value.loc[value['Position'] == 'WR'] # 57
 te_only = value.loc[value['Position'] == 'TE'] # 16
 
 value.reset_index(drop = True)
-value.to_csv('ECRvESPNValue.csv', index= False)
-
-
+value.to_csv('ECRvESPNValue1.csv', index= False)
