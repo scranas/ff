@@ -1,5 +1,4 @@
 # ff
-# ff
 gettingESPNadp.py makes use of other repo that goes through espn API to get draft data
 creates a csv file to be included and compared to fantasypros adps in ECRvESPN
 
