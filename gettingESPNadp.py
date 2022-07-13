@@ -14,6 +14,9 @@ matches ESPN ADP website, does not match ESPN MOCK draft lobbies!
 
 ^fantasypros has a version of ESPN ADP, slightly mismatches my dataset
 fp also says ESPN ADP can be found under PPR scoring, so likely default for their rankings
+
+default was player limit 150, see line 29 "req.add_header", 
+can change value of "limit" to pull more data
 """
 
 import urllib.request 
@@ -24,7 +27,7 @@ import numpy as np
 
 year = 2022
 req = urllib.request.Request(f'https://fantasy.espn.com/apis/v3/games/ffl/seasons/{year}/segments/0/leaguedefaults/3?view=kona_player_info')
-req.add_header('x-fantasy-filter','{"players":{"filterSlotIds":{"value":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,23,24]},"limit":150,"offset":0,"sortAverageAuction":{"sortAsc":false,"sortPriority":1},"sortDraftRanks":{"sortPriority":100,"sortAsc":true,"value":"STANDARD"},"filterRanksForScoringPeriodIds":{"value":[1]},"filterRanksForRankTypes":{"value":["PPR"]},"filterRanksForSlotIds":{"value":[0,2,4,6,17,16]},"filterStatsForTopScoringPeriodIds":{"value":2,"additionalValue":["002021","102021","002020","022021"]}}}')
+req.add_header('x-fantasy-filter','{"players":{"filterSlotIds":{"value":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,23,24]},"limit":200,"offset":0,"sortAverageAuction":{"sortAsc":false,"sortPriority":1},"sortDraftRanks":{"sortPriority":100,"sortAsc":true,"value":"STANDARD"},"filterRanksForScoringPeriodIds":{"value":[1]},"filterRanksForRankTypes":{"value":["PPR"]},"filterRanksForSlotIds":{"value":[0,2,4,6,17,16]},"filterStatsForTopScoringPeriodIds":{"value":2,"additionalValue":["002021","102021","002020","022021"]}}}')
 with urllib.request.urlopen(req) as url:
     data = json.loads(url.read().decode())
     print(data)
@@ -39,7 +42,9 @@ with open('adp.txt') as json_file:
         data = json.load(json_file)
         for person in data['players']:
             if person['player']['ownership']['averageDraftPosition'] > 1:
-                auction_file.write(person['player']['fullName']+","+str(person['player']['defaultPositionId']) + "," + str(person['player']['ownership']['averageDraftPosition']))
+                auction_file.write(person['player']['fullName']+","+str(person[
+                    'player']['defaultPositionId']) + "," + str(person['player'][
+                        'ownership']['averageDraftPosition']))
                 auction_file.write('\n')
         
 #-----change position values from int to str via dict.
@@ -57,4 +62,5 @@ decimals = 2
 snakeADP[" Value"] = snakeADP[" Value"].apply(lambda x: round(x, decimals))
 snakeADP = snakeADP.rename(columns = {'Name' : 'Player Name', ' Position' : 'Position', ' Value' : 'AvgADP'})
 
-snakeADP.to_csv('ESPNADP.csv')
+snakeADP.to_csv('ESPNADP1.csv')
+
